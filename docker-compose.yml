@@ -1,0 +1,26 @@
+services:
+  postgres18_db:
+    image: postgres:18
+    container_name: postgres18_db
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - ${POSTGRES_PORTS}
+    volumes:
+      - postgres18_db_data:/var/lib/postgresql/data
+
+  pgadmin4:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+      - PGADMIN_LISTEN_PORT=${PGADMIN_PORT}
+    ports:
+      - ${PGADMIN_PORTS}
+    depends_on:
+      - postgres18_db
+
+volumes:
+  postgres18_db_data:
+    name: local-environment_postgres18_db_data
