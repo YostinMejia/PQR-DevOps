@@ -28,14 +28,16 @@ services:
       dockerfile: Dockerfile
     container_name: pqr-management
     ports:
-      - ${APP_PORT}
+      - ${APP_DOCKER_PORTS}
     depends_on:
       - postgres18_db
     environment:
-      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres18_db:${DB_PORT}/${DB_NAME}
-      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
-      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - SERVER_PORT=${SERVER_PORT}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 volumes:
   postgres18_db_data:
     name: local-environment_postgres18_db_data
