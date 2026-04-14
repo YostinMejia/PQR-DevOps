@@ -134,6 +134,8 @@
 						<exclude>com/devops/api/pqr/GlobalExceptionHandler.class</exclude>
 						<exclude>com/devops/api/pqr/reviewer/mapper/*Impl.class</exclude>
 						<exclude>com/devops/api/pqr/document/mapper/*Impl.class</exclude>
+						<exclude>com/devops/api/pqr/book/*</exclude>
+						<exclude>com/devops/api/pqr/config/*</exclude>
 					</excludes>
                 </configuration>
 				<executions>

@@ -1,6 +1,7 @@
 package com.devops.api.pqr.pqr;
 
 import com.devops.api.pqr.document.mapper.DocumentMapper;
+import com.devops.api.pqr.pqr.dto.BookDto;
 import com.devops.api.pqr.pqr.dto.CreatePqrDto;
 import com.devops.api.pqr.pqr.entity.Pqr;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,21 +37,15 @@ public class PqrControllerTest {
     @MockitoBean
     private DocumentMapper documentMapper;
 
-    private static final String BASE_URL = "/api/v1/pqr";
+    private static final String BASE_URL = "/api/v2/pqr";
 
     @Test
     @DisplayName("POST /pqr - Should create PQR with files successfully")
     void testCreatePqrShouldReturnCreated() throws Exception {
         // GIVEN
-        CreatePqrDto dto = new CreatePqrDto("queja", "test@gmail.com", "Description test");
+        CreatePqrDto dto = buildValidDto();
 
-        MockMultipartFile metadataPart = new MockMultipartFile(
-                "metadata",
-                "",
-                MediaType.APPLICATION_JSON_VALUE,
-                objectMapper.writeValueAsBytes(dto)
-        );
-
+        MockMultipartFile pqrPart = buildPqrPart(dto);
         MockMultipartFile filePart = new MockMultipartFile(
                 "files",
                 "evidence.pdf",
@@ -63,39 +58,99 @@ public class PqrControllerTest {
                 .type(dto.getType())
                 .customerEmail(dto.getCustomerEmail())
                 .description(dto.getDescription())
+                .subject(dto.getSubject())
                 .build();
 
         given(pqrService.createPqr(any(CreatePqrDto.class), anyList()))
                 .willReturn(savedPqr);
 
-        // WHEN
-        // THEN
+        // WHEN / THEN
         mockMvc.perform(multipart(BASE_URL)
-                        .file(metadataPart)
+                        .file(pqrPart)
                         .file(filePart)
                         .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.type").value("queja"));
+                .andExpect(jsonPath("$.type").value("queja"))
+                .andExpect(jsonPath("$.subject").value("comprar_libro"));
     }
 
     @Test
-    @DisplayName("POST /pqr - Should return 400 when metadata is invalid")
+    @DisplayName("POST /pqr - Should create PQR without files successfully")
+    void testCreatePqrWithoutFilesShouldReturnCreated() throws Exception {
+        // GIVEN
+        CreatePqrDto dto = buildValidDto();
+
+        MockMultipartFile pqrPart = buildPqrPart(dto);
+
+        Pqr savedPqr = Pqr.builder()
+                .id(UUID.randomUUID().toString())
+                .type(dto.getType())
+                .customerEmail(dto.getCustomerEmail())
+                .description(dto.getDescription())
+                .subject(dto.getSubject())
+                .build();
+
+        given(pqrService.createPqr(any(CreatePqrDto.class), any()))
+                .willReturn(savedPqr);
+
+        // WHEN / THEN
+        mockMvc.perform(multipart(BASE_URL)
+                        .file(pqrPart)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists());
+    }
+
+    @Test
+    @DisplayName("POST /pqr - Should return 400 when required fields are blank")
     void testCreatePqrShouldReturnBadRequestWhenInvalidDto() throws Exception {
         // GIVEN
-        CreatePqrDto invalidDto = new CreatePqrDto("", "not-an-email", "");
+        CreatePqrDto invalidDto = new CreatePqrDto("", "not-an-email", "", "", null);
 
-        MockMultipartFile metadataPart = new MockMultipartFile(
-                "metadata",
-                "",
-                MediaType.APPLICATION_JSON_VALUE,
-                objectMapper.writeValueAsBytes(invalidDto)
+        MockMultipartFile pqrPart = buildPqrPart(invalidDto);
+
+        // WHEN / THEN
+        mockMvc.perform(multipart(BASE_URL)
+                        .file(pqrPart)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("POST /pqr - Should return 400 when type does not match allowed values")
+    void testCreatePqrShouldReturnBadRequestWhenTypeIsInvalid() throws Exception {
+        // GIVEN
+        CreatePqrDto invalidDto = new CreatePqrDto(
+                "tipo_invalido", "test@gmail.com", "Description", "comprar_libro",
+                new BookDto("Clean Code", "Robert Martin")
         );
 
-        // WHEN
-        // THEN
+        MockMultipartFile pqrPart = buildPqrPart(invalidDto);
+
+        // WHEN / THEN
         mockMvc.perform(multipart(BASE_URL)
-                        .file(metadataPart))
+                        .file(pqrPart)
+                        .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isBadRequest());
+    }
+
+    private CreatePqrDto buildValidDto() {
+        return new CreatePqrDto(
+                "queja",
+                "test@gmail.com",
+                "Description test",
+                "comprar_libro",
+                new BookDto("Clean Code", "Robert Martin")
+        );
+    }
+
+    private MockMultipartFile buildPqrPart(CreatePqrDto dto) throws Exception {
+        return new MockMultipartFile(
+                "pqr",
+                "",
+                MediaType.APPLICATION_JSON_VALUE,
+                objectMapper.writeValueAsBytes(dto)
+        );
     }
 }

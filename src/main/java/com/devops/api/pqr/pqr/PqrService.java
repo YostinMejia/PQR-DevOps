@@ -7,6 +7,7 @@ import com.devops.api.pqr.document.entity.Document;
 import com.devops.api.pqr.document.DocumentRepository;
 import com.devops.api.pqr.pqr.dto.CreatePqrDto;
 import com.devops.api.pqr.pqr.entity.Pqr;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
